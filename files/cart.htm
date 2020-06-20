@@ -1,0 +1,146 @@
+<div class="cart-info">
+  {% IF FORM_NOTICE %}
+    <div class="{% IF FORM_NOTICE_IS_GOOD %}success{% ELSE %}warning{% ENDIF %}">{FORM_NOTICE | nl2br}</div>
+    <script>
+      $(function () {
+        new Noty({
+          text: '<div class="noty_content">{FORM_NOTICE | nl2br}</div>',
+          type: '{% IF FORM_NOTICE_IS_GOOD %}success{% ELSE %}error{% ENDIF %}'
+        }).show()         
+      });      
+    </script>
+  {% ENDIF %}
+  <div id="empty-cart" class="empty-cart _cart-page" style="{% IFNOT cart_count_empty %}display:none{% ENDIF %}">
+     <div class="empty-cart__content">
+       <h3 class="empty-cart__title">Ваша корзина пуста</h3>
+       <p class="empty-cart__subtext">
+         Вернитесь на главную и выберите интересующий товар.
+       </p>       
+        <div class="buttons">
+          <a href="{INDEX_PAGE_URL}" class="button">Перейти на главную</a>
+        </div>
+     </div>
+  </div>
+  {% IFNOT cart_count_empty %}
+      <!--Корзина-->
+      <div class="cart _cart-page">
+        <form action="{CART_URL}" method="post" id="cart-content">
+          <input type="hidden" name="fast_order" value="1" />
+          <input type="hidden" name="hash" value="{HASH}" />
+          
+          <div class="preloader _opacity"><span class="content-loading"></span></div>
+          <div class="cart__products">
+            <div class="cart__table"> 
+              <div class="cart__table-row -head">
+                  <div class="cart__head-item -name">Товар</div>
+                  <div class="cart__head-item -qty">Кол-во</div>
+                  <div class="cart__head-item -price-total">Итого</div>
+                  <div class="cart__head-item -delete-all">
+                    <a id="cart-clear" class="cart__delete-all" title="Очистить корзину" href="{CART_TRUNCATE_URL}">
+                      <svg title="Очистить корзину" class="cart__delete-all-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/><path fill="none" d="M0 0h24v24H0z"/></svg>
+                    </a>
+                  </div>
+              </div>
+              <div class="cart__body">
+                {% FOR cart_items %}
+                  <div class="cart__table-row" data-id="{cart_items.GOODS_MOD_ID}">
+                    <div class="cart__table-item -photo">
+                        <a href="{cart_items.GOODS_URL}">
+                            <img class="cart__photo goods-image-other" src="{% IF cart_items.GOODS_IMAGE_EMPTY %}{ASSETS_IMAGES_PATH}no-photo-icon.png?design=techno{% ELSE %}{cart_items.GOODS_IMAGE_OTHER}{% ENDIF %}">
+                        </a>
+                    </div> 
+                    <div class="cart__table-item -name"> 
+                        <a class="cart__product-name" href="{cart_items.GOODS_URL}">{cart_items.GOODS_NAME}</a>
+                        <!-- Если у товара есть отличительные свойства для модификации товара, допишем их к названию товара -->
+                        {% IF cart_items.GOODS_MOD_ART_NUMBER %}<div class="art">Артикул: <span>{cart_items.GOODS_MOD_ART_NUMBER}</span></div>{% ENDIF %}
+                        {% IFNOT cart_items.distinctive_properties_empty %}<div class="properties">{% FOR distinctive_properties %}{cart_items.distinctive_properties.NAME}: {cart_items.distinctive_properties.VALUE}{% IFNOT cart_items.distinctive_properties.last %},<br> {% ENDIF %}{% ENDFOR %}</div>{% ENDIF %}
+                    </div>
+                    <div class="cart__table-item -qty">
+                      <div class="qty qty--cart">
+                          <div class="qty__wrap">
+                              <a href="javascript:void(0)" class="qty__btn qty__btn--plus" title="Увеличить"></a>
+                              <input name="form[quantity][{cart_items.GOODS_MOD_ID}]" value="{cart_items.ORDER_LINE_QUANTITY}" title="Количество" class="input qty__input qty--cart" type="number" value="1" min="1" pattern="\d*" onkeypress="return keyPress(this, event);"   autocomplete="off"/>
+                              <a href="javascript:void(0)" class="qty__btn qty__btn--minus" title="Уменьшить"></a>
+                          </div>
+                      </div>
+                    </div> 
+                    <div class="cart__table-item -price-total">
+                        <span class="price _center cart__product-ajax-price {CURRENCY_CHAR_CODE}">{cart_items.ORDER_LINE_PRICE_NOW | money_format}</span>            
+                    </div>
+                    <div class="cart__table-item -delete">
+                      <a class="cart__delete" href="{cart_items.ORDER_LINE_DELETE_URL}" title="Удалить">
+                        <svg class="cart__delete-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"/><path fill="none" d="M0 0h24v24H0V0z"/></svg>
+                        <span class="cart__delete-title">Удалить</span>
+                      </a>
+                    </div>
+                  </div>
+                {% ENDFOR %}
+              </div>
+            </div>
+            <div class="cart__coupon">
+                <!-- Если в тарифном плане подключен модуль скидок по купонам и суммам заказов -->
+                {% IF TARIFF_FEATURE_DISCOUNT_COUPONS %}
+                <!-- Если скидки по купонам активированы в панели управления магазином -->
+                {% IF ORDER_DISCOUNT_COUPON_IS_ENABLED %}
+                    <div class="coupon">
+                        <div class="coupon__wrap">
+                            <div class="coupon__box input-box">
+                                <input type="text" id="quick_form_coupon_code" name="form[coupon_code]" value="{ORDER_FORM_COUPON_CODE}" class="input coupon__input _bordered" placeholder="Введите купон на скидку" />                                
+                                <button type="button" class="coupon__clear" title="Очистить купон"><i class="fal fa-times" aria-hidden="true"></i></button>
+                                <button type="button" class="button coupon__btn">Применить</button>
+                            </div>
+                        </div>
+                    </div>
+                {% ENDIF %}
+                {% ENDIF %}
+                <!-- END Если в тарифном плане подключен модуль скидок по купонам и суммам заказов -->                          
+            </div>
+            <div class="cart__sum">
+                <div class="cart__sum-row cart__sum--order-sum">
+                    <span class="cart__sum-label">Товаров на:</span>
+                    <span class="cart__sum-text-price"><span class="price {CURRENCY_CHAR_CODE}">{CART_SUM_NOW | money_format}</span></span>
+                </div>            
+                <!-- Скидки, действующие на заказ -->
+                {% IF CART_SUM_DISCOUNT_PERCENT %}
+                  {% FOR cart_discount %}
+                    {% IF cart_discount.DISCOUNT_IS_ENABLED %}          
+                    <div class="cart__sum-row cart__sum--discount">
+                        <span class="cart__sum-label">Скидка(<span class="discount-type">{% IF cart_discount.DISCOUNT_TYPE= sum %}по сумме заказа{% ELSEIF  cart_discount.DISCOUNT_TYPE= cumulative%}накопительная{% ELSE %}по купону{% ENDIF %}</span>):</span>
+                        <span class="cart__sum-text-price" data-discount-value="{cart_discount.END_PRICE}"><span class="price {CURRENCY_CHAR_CODE}">{% IF cart_discount.IS_PERCENT %}{cart_discount.DISCOUNT_VALUE} %{% ELSE %}{cart_discount.DISCOUNT_VALUE | money_format}{% ENDIF %}</span></span>
+                    </div>
+                    {% ENDIF %}
+                  {% ENDFOR %}
+                {% ELSE %}
+                <div class="cart__sum-row cart__sum--discount" style="display:none">
+                    <span class="cart__sum-label">Скидка(<span class="discount-type">{% IF cart_discount.DISCOUNT_TYPE= sum %}по сумме заказа{% ELSEIF  cart_discount.DISCOUNT_TYPE= cumulative%}накопительная{% ELSE %}по купону{% ENDIF %}</span>):</span>
+                    <span class="cart__sum-text-price" data-discount-value="0"></span>
+                </div>
+                {% ENDIF %}                
+                <div class="cart__sum-row cart__sum--delivery-sum">
+                    <span class="cart__sum-label">Стоимость доставки:</span>
+                    <span class="cart__sum-text-price"><span class="price {CURRENCY_CHAR_CODE}"><span><span class="num">0</span><span>{CURRENCY_NAME}</span></span></span></span>
+                </div>
+                <div class="cart__sum-row cart__sum--total">
+                    <span class="cart__sum-label">Сумма заказа:</span>
+                    <span class="cart__sum-text-price">
+                        <span class="price total-sum {CURRENCY_CHAR_CODE}" data-total-sum="{CART_SUM_NOW}">
+                            {% FOR cart_sum %}
+                                {cart_sum.NOW_WITH_DELIVERY_AND_DISCOUNT | money_format}
+                            {% ENDFOR %}
+                        </span>                            
+                    </span>
+                </div>               
+            </div>
+            <noscript>
+              <style>
+                .qty.qty--cart .qty__btn {display:none;}
+                .qty.qty--cart .qty__input.qty--cart {border: 1px solid #898989;display: inline-block;max-width: 50px;}
+              </style>
+              <input class="button start-order _calc" type="submit" value="Пересчитать" title="Пересчитать" />
+            </noscript>
+            <input class="button start-order" type="submit" name="next_step" value="Оформить заказ" title="Перейти к оформлению заказа в 4 шага" />            
+          </div>
+        </form> 
+      </div>
+  {% ENDIF %}
+</div>

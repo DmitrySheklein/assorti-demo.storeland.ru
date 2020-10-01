@@ -164,7 +164,7 @@
                   </select>
                 </div>
                 <div class="quickform__select-box {% FOR order_delivery %}{% IF order_delivery.first %}{% IF order_delivery.zone_list_empty %}_hide-triangle{% ENDIF %}{% ENDIF %}{% ENDFOR %}">
-                  <select name="form[delivery][zone_id]" class="quickform__select delivery-zone-select {% FOR order_delivery %}{% IF order_delivery.first %}{% IF order_delivery.zone_list_empty %}_hide{% ENDIF %}{% ENDIF %}{% ENDFOR %}" data-delivery-id="{order_delivery.ID}">
+                  <select name="form[delivery][zone_id]" class="quickform__select delivery-zone-select {% FOR order_delivery %}{% IF order_delivery.first %}{% IF order_delivery.zone_list_empty %}_hide{% ENDIF %}{% ENDIF %}{% ENDFOR %}" data-delivery-id="{% FOR order_delivery %}{% IF order_delivery.first %}{order_delivery.ID}{% ENDIF %}{% ENDFOR %}">
                   {% FOR order_delivery %}
                     {% IFNOT order_delivery.zone_list_empty %}
                       {% IF order_delivery.first %}                

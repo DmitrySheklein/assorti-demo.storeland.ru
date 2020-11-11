@@ -912,7 +912,7 @@ to {visibility: hidden;-webkit-transform: translate3d(0,200%,0);transform: trans
 }
 .index .products-container {display:none;}
 .products-container._active {display:block;}
-.products-container .product:nth-child(10) ~ .product {display: none}
+.index .products-container .product:nth-child(10) ~ .product {display: none}
 .products-container .button._products-show-all {display: block;margin: auto;margin-bottom: 70px}
 
 @media all and (max-width: 991px) {

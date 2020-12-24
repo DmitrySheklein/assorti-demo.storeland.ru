@@ -1031,7 +1031,7 @@ function orderScripts(){
       var deliveryId = $(this).val();
       
       CURRENT_DELIVERY = getCurrentDelivery(deliveryId);
-      console.log(CURRENT_DELIVERY)
+      // console.log(CURRENT_DELIVERY)
       // Если есть варианты оплаты для текущей доставки
       if (CURRENT_DELIVERY.availablePaymentList.length) {
         renderPaymentSelect();
@@ -1051,7 +1051,7 @@ function orderScripts(){
       var deliveryId = $(this).data('delivery-id');
       var zoneId = $(this).val();
       $(this).data('delivery-zonelist-id', zoneId);
-      console.log('zoneId delivery-zone-select', $(this).data('delivery-zonelist-id'))
+      // console.log('zoneId delivery-zone-select', $(this).data('delivery-zonelist-id'))
       
       CURRENT_DELIVERY = getCurrentDelivery(deliveryId);
       
@@ -1129,8 +1129,9 @@ function orderScripts(){
 
           $paymentSelect.append($option);
 
-          if (i == 0) {
-            $paymentDescr.html(item.message);
+          if (i == 0) {            
+            var currentPaymentMessage = $('.payment-descr__hidden').filter('._' + CURRENT_DELIVERY.id).find('.payment-descr__hidden-item').first().html();
+            $paymentDescr.html(currentPaymentMessage);
           }
         });
       }
@@ -1140,11 +1141,9 @@ function orderScripts(){
 
     function changePaymentSelect(paymentId) {
       var $paymentDescrBlock = $('.payment__desc');
-      var currentPayment = $.grep(CURRENT_DELIVERY.availablePaymentList, function(item, i) {
-        return item.id === String(paymentId)
-      })[0]
+      var currentPaymentMessage = $('.payment-descr__hidden').filter('._' + CURRENT_DELIVERY.id).find('.payment-descr__hidden-item').filter('._' + paymentId).html();
 
-      $paymentDescrBlock.html(currentPayment.message);
+      $paymentDescrBlock.html(currentPaymentMessage);
     }
   }
 
@@ -1158,7 +1157,15 @@ function orderScripts(){
     $('.delivery__descr .delivery__price .num').text(addSpaces(deliveryPrice));
     // Описание доставки
     if (CURRENT_DELIVERY) {
-        $('.delivery__descr .delivery__text').html(CURRENT_DELIVERY.desc);
+      var descriptionHtml = $('.delivery__hidden-descr').filter('._' + CURRENT_DELIVERY.id).html();
+
+      $('.delivery__descr .delivery__text').html(descriptionHtml);
+    }
+    // Описание оплаты
+    if(CURRENT_DELIVERY){
+      var $paymentDescr = $('.payment__desc');
+      var currentPaymentMessage = $('.payment-descr__hidden').filter('._' + CURRENT_DELIVERY.id).find('.payment-descr__hidden-item').first().html();
+      $paymentDescr.html(currentPaymentMessage);
     }
 
     var priceNow = (currentPriceWithoutChange + deliveryPrice) - discountPrice;
